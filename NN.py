@@ -44,8 +44,8 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
             self.bias.append(np.zeros((num_neurons_in_each_layer[i],1),dtype = float))
         self.bias.append(np.zeros((self.output_size,1),dtype=float))
         
-        self.weight_grad = np.copy(self.weights)
-        self.bias_grad = np.copy(self.bias)
+        self.weight_grad = list(self.weights)
+        self.bias_grad = list(self.bias)
 
     def build_network(self):
         for i in range(1,self.num_hidden_layers+1):
@@ -65,7 +65,7 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
         self.layers[-1].gradient = -1*(output-self.layers[-1].yhat)
         for i in range(len(self.weights)-1,0,-1):
             # Computing Gradient wrt parameters
-            self.weight_grad[i] = self.layers[i].gradient@(self.layers.activation[i-1].T)
+            self.weight_grad[i] = self.layers[i].gradient@(self.layers[i-1].activation.T)
             self.bias_grad[i] = self.layers[i].gradient
             # Computing gradients wrt layer below
             grad_temp = self.weights[i].T@self.layers[i].gradient
@@ -73,9 +73,10 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
             self.layers[i-1].gradient = grad_temp*((self.layers[i-1].pre_activation)*(1-self.layers[i-1].pre_activation))
         self.weight_grad[0] = self.layers[0].gradient@(input.T)
         self.bias_grad[0] = self.layers[0].gradient
-        
+
 nn = NeuralNetwork(2,[3,3],5,2)
 nn.build_network()
 nn.forward_pass(np.array([[2],[2],[2],[2],[2]]))
+nn.backpropagation(np.array([[2],[2],[2],[2],[2]]),np.array([[1],[0]]))
 
 
