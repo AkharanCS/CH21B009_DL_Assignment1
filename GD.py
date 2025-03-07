@@ -1,6 +1,21 @@
 import numpy as np
 from NN import hidden_layer,output_layer,NeuralNetwork,activations
 
+class loss_after_epoch():
+    def cross_entropy_loss(nn:NeuralNetwork,X,Y):
+        error = 0.0
+        for x,y in zip(X,Y):
+            yhat = nn.forward_pass(x.reshape(28*28,1)/255)
+            error += (-1*np.sum(y.T@np.log(yhat+0.0001)))
+        return error
+    
+    def squared_error_loss(nn:NeuralNetwork,X,Y):
+        error = 0.0
+        for x,y in zip(X,Y):
+            yhat = nn.forward_pass(x.reshape(28*28,1)/255)
+            error += np.sum((y.T - yhat)**2)
+        return error
+    
 class optimizer():
     def __init__(self,optimizer_name,epochs,batch_size,learning_rate,train_x,train_y,val_x,val_y):
         self.opt_type = optimizer_name

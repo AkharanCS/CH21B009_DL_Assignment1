@@ -30,8 +30,21 @@ class activations():
         exp_x = np.exp(x - np.max(x, axis=0, keepdims=True))
         return exp_x / np.sum(exp_x, axis=0, keepdims=True)
 
-class NeuralNetwork(hidden_layer,output_layer,activations):
-    def __init__(self, num_hidden_layers:int, num_neurons_in_each_layer: list, input_size: int, num_of_classes:int):
+class loss():
+    def cross_entropy(y,yhat):
+        return (-1*np.sum(y.T@np.log(yhat+0.0001)))
+    
+    def cross_entropy_der(y,yhat):
+        return -1*(y-yhat)
+    
+    def squared_error(y,yhat):
+        return np.sum((y - yhat)**2)
+    
+    def squared_error_der(y,yhat):
+        return -2*(y - yhat)
+    
+class NeuralNetwork(hidden_layer,output_layer,activations,loss):
+    def __init__(self, num_hidden_layers:int, num_neurons_in_each_layer: list, input_size: int, num_of_classes:int,hidden_activation,loss):
         self.input_size = input_size
         self.num_hidden_layers = num_hidden_layers
         self.num_neurons_in_each_layer = num_neurons_in_each_layer
@@ -57,6 +70,23 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
                 self.weight_grad_cumm[i][j] = 0
         self.bias_grad_cumm = list(self.bias)
 
+        if hidden_activation == "sigmoid":
+            self.activation_fn = self.sigmoid
+            self.activation_der = self.sigmoid_derivative
+        if hidden_activation == "relu":
+            self.activation_fn = self.relu
+            self.activation_der = self.relu_derivative
+        if hidden_activation == "tanh":
+            self.activation_fn = self.tanh
+            self.activation_der = self.tanh_derivative
+
+        if loss == "cross_entropy":
+            self.loss = self.cross_entropy
+            self.loss_der = self.cross_entropy_der
+        if loss == "squared_error":
+            self.loss = self.squared_error
+            self.loss_der = self.squared_error_der
+
     def build_network(self):
         for i in range(1,self.num_hidden_layers+1):
             self.layers.append(hidden_layer(layer_index=i,num_neurons=self.num_neurons_in_each_layer[i-1]))
@@ -66,14 +96,14 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
         hk = np.array(input)
         for i in range(len(self.layers)-1):
             self.layers[i].pre_activation = self.bias[i] + self.weights[i]@hk
-            self.layers[i].activation = self.sigmoid(self.layers[i].pre_activation)
+            self.layers[i].activation = self.activation_fn(self.layers[i].pre_activation)
             hk = self.layers[i].activation
         self.layers[-1].pre_activation = self.bias[-1] + self.weights[-1]@hk
         self.layers[-1].yhat = self.softmax(self.layers[-1].pre_activation)
         return self.layers[-1].yhat
     
     def backpropagation(self,input,output):
-        self.layers[-1].gradient = -1*(output-self.layers[-1].yhat)
+        self.layers[-1].gradient = self.loss_der(output,self.layers[-1].yhat)
         for i in range(len(self.weights)-1,0,-1):
             # Computing gradient wrt parameters
             self.weight_grad[i] = self.layers[i].gradient@(self.layers[i-1].activation.T)
@@ -81,7 +111,7 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
             # Computing gradients wrt layer below
             grad_temp = self.weights[i].T@self.layers[i].gradient
             # Computing gradients wrt layer below (pre act)
-            self.layers[i-1].gradient = grad_temp*((self.layers[i-1].activation)*(1-self.layers[i-1].activation))
+            self.layers[i-1].gradient = grad_temp*(self.activation_der(self.layers[i-1].activation))
         self.weight_grad[0] = self.layers[0].gradient@(input.T)
         self.bias_grad[0] = self.layers[0].gradient
         return self.weight_grad,self.bias_grad
