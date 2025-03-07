@@ -25,22 +25,31 @@ class activations():
     
     def relu(self,x):
         return np.maximum(0, x)
+    
+    def relu_derivative():
+        pass
+
+    def tanh():
+        pass
+
+    def tanh_derivative():
+        pass
 
     def softmax(self,x):
         exp_x = np.exp(x - np.max(x, axis=0, keepdims=True))
         return exp_x / np.sum(exp_x, axis=0, keepdims=True)
 
 class loss():
-    def cross_entropy(y,yhat):
+    def cross_entropy(self,y,yhat):
         return (-1*np.sum(y.T@np.log(yhat+0.0001)))
     
-    def cross_entropy_der(y,yhat):
+    def cross_entropy_der(self,y,yhat):
         return -1*(y-yhat)
     
-    def squared_error(y,yhat):
+    def squared_error(self,y,yhat):
         return np.sum((y - yhat)**2)
     
-    def squared_error_der(y,yhat):
+    def squared_error_der(self,y,yhat):
         return -2*(y - yhat)
     
 class NeuralNetwork(hidden_layer,output_layer,activations,loss):
