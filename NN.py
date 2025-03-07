@@ -19,6 +19,10 @@ class activations():
     def sigmoid(self,x):
         return 1 / (1 + np.exp(-x))
 
+    def sigmoid_derivative(self,x):
+        sig = 1 / (1 + np.exp(-x))
+        return sig*(1-sig)
+    
     def relu(self,x):
         return np.maximum(0, x)
 
@@ -34,11 +38,11 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
         self.output_size = num_of_classes
         self.layers = []
 
-        self.weights = [np.zeros((num_neurons_in_each_layer[0],input_size),dtype=float)]
+        self.weights = [np.random.randn(num_neurons_in_each_layer[0],input_size)*0.01]
         for i in range(1,num_hidden_layers):
-            self.weights.append(np.zeros((num_neurons_in_each_layer[i],num_neurons_in_each_layer[i-1]),dtype=float))
-        self.weights.append(np.zeros((self.output_size,num_neurons_in_each_layer[-1]),dtype=float))
-
+            self.weights.append(np.random.randn(num_neurons_in_each_layer[i],num_neurons_in_each_layer[i-1])*0.01)
+        self.weights.append(np.random.randn(self.output_size,num_neurons_in_each_layer[-1])*0.01)
+        
         self.bias = []
         for i in range(len(self.weights)-1):
             self.bias.append(np.zeros((num_neurons_in_each_layer[i],1),dtype = float))
@@ -46,6 +50,12 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
         
         self.weight_grad = list(self.weights)
         self.bias_grad = list(self.bias)
+
+        self.weight_grad_cumm = list(self.weights)
+        for i in range(len(self.weight_grad_cumm)):
+            for j in range(len(self.weight_grad_cumm[i])):
+                self.weight_grad_cumm[i][j] = 0
+        self.bias_grad_cumm = list(self.bias)
 
     def build_network(self):
         for i in range(1,self.num_hidden_layers+1):
@@ -60,23 +70,22 @@ class NeuralNetwork(hidden_layer,output_layer,activations):
             hk = self.layers[i].activation
         self.layers[-1].pre_activation = self.bias[-1] + self.weights[-1]@hk
         self.layers[-1].yhat = self.softmax(self.layers[-1].pre_activation)
+        return self.layers[-1].yhat
     
     def backpropagation(self,input,output):
         self.layers[-1].gradient = -1*(output-self.layers[-1].yhat)
         for i in range(len(self.weights)-1,0,-1):
-            # Computing Gradient wrt parameters
+            # Computing gradient wrt parameters
             self.weight_grad[i] = self.layers[i].gradient@(self.layers[i-1].activation.T)
             self.bias_grad[i] = self.layers[i].gradient
             # Computing gradients wrt layer below
             grad_temp = self.weights[i].T@self.layers[i].gradient
             # Computing gradients wrt layer below (pre act)
-            self.layers[i-1].gradient = grad_temp*((self.layers[i-1].pre_activation)*(1-self.layers[i-1].pre_activation))
+            self.layers[i-1].gradient = grad_temp*((self.layers[i-1].activation)*(1-self.layers[i-1].activation))
         self.weight_grad[0] = self.layers[0].gradient@(input.T)
         self.bias_grad[0] = self.layers[0].gradient
+        return self.weight_grad,self.bias_grad
 
-nn = NeuralNetwork(2,[3,3],5,2)
-nn.build_network()
-nn.forward_pass(np.array([[2],[2],[2],[2],[2]]))
-nn.backpropagation(np.array([[2],[2],[2],[2],[2]]),np.array([[1],[0]]))
+
 
 
