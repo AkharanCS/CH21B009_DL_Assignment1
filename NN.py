@@ -26,14 +26,14 @@ class activations():
     def relu(self,x):
         return np.maximum(0, x)
     
-    def relu_derivative():
-        pass
-
-    def tanh():
-        pass
-
-    def tanh_derivative():
-        pass
+    def relu_derivative(self,x):
+        return (x > 0).astype(float)
+    
+    def tanh(self,x):
+        return np.tanh(x)
+    
+    def tanh_derivative(self,x):
+        return 1 - np.tanh(x)**2
 
     def softmax(self,x):
         exp_x = np.exp(x - np.max(x, axis=0, keepdims=True))
