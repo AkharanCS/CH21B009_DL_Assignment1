@@ -60,10 +60,10 @@ class NeuralNetwork(hidden_layer,output_layer,activations,loss):
         self.output_size = num_of_classes
         self.layers = []
 
-        self.weights = [np.random.randn(num_neurons_in_each_layer[0],input_size)*0.01]
+        self.weights = [np.random.randn(num_neurons_in_each_layer[0],input_size)]
         for i in range(1,num_hidden_layers):
-            self.weights.append(np.random.randn(num_neurons_in_each_layer[i],num_neurons_in_each_layer[i-1])*0.01)
-        self.weights.append(np.random.randn(self.output_size,num_neurons_in_each_layer[-1])*0.01)
+            self.weights.append(np.random.randn(num_neurons_in_each_layer[i],num_neurons_in_each_layer[i-1]))
+        self.weights.append(np.random.randn(self.output_size,num_neurons_in_each_layer[-1]))
         
         self.bias = []
         for i in range(len(self.weights)-1):
