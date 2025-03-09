@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 class hidden_layer():
     def __init__(self,layer_index,num_neurons):
@@ -59,26 +60,26 @@ class NeuralNetwork(hidden_layer,output_layer,activations,loss):
         self.num_neurons_in_each_layer = num_neurons_in_each_layer
         self.output_size = num_of_classes
         self.layers = []
-
+        
         self.weights = [np.random.randn(num_neurons_in_each_layer[0],input_size)]
         for i in range(1,num_hidden_layers):
             self.weights.append(np.random.randn(num_neurons_in_each_layer[i],num_neurons_in_each_layer[i-1]))
         self.weights.append(np.random.randn(self.output_size,num_neurons_in_each_layer[-1]))
-        
+    
         self.bias = []
         for i in range(len(self.weights)-1):
             self.bias.append(np.zeros((num_neurons_in_each_layer[i],1),dtype = float))
         self.bias.append(np.zeros((self.output_size,1),dtype=float))
         
-        self.weight_grad = list(self.weights)
-        self.bias_grad = list(self.bias)
-
-        self.weight_grad_cumm = list(self.weights)
+        self.weight_grad_cumm = copy.deepcopy(self.weights)
         for i in range(len(self.weight_grad_cumm)):
             for j in range(len(self.weight_grad_cumm[i])):
                 self.weight_grad_cumm[i][j] = 0
-        self.bias_grad_cumm = list(self.bias)
+        self.bias_grad_cumm = copy.deepcopy(self.bias)
 
+        self.weight_grad = copy.deepcopy(self.weight_grad_cumm)
+        self.bias_grad = copy.deepcopy(self.bias_grad_cumm)
+    
         if hidden_activation == "sigmoid":
             self.activation_fn = self.sigmoid
             self.activation_der = self.sigmoid_derivative
@@ -96,13 +97,14 @@ class NeuralNetwork(hidden_layer,output_layer,activations,loss):
             self.loss = self.squared_error
             self.loss_der = self.squared_error_der
 
+
     def build_network(self):
         for i in range(1,self.num_hidden_layers+1):
             self.layers.append(hidden_layer(layer_index=i,num_neurons=self.num_neurons_in_each_layer[i-1]))
         self.layers.append(output_layer(self.output_size))
     
     def forward_pass(self,input):
-        hk = np.array(input)
+        hk = input
         for i in range(len(self.layers)-1):
             self.layers[i].pre_activation = self.bias[i] + self.weights[i]@hk
             self.layers[i].activation = self.activation_fn(self.layers[i].pre_activation)
@@ -115,15 +117,32 @@ class NeuralNetwork(hidden_layer,output_layer,activations,loss):
         self.layers[-1].gradient = self.loss_der(output,self.layers[-1].yhat)
         for i in range(len(self.weights)-1,0,-1):
             # Computing gradient wrt parameters
-            self.weight_grad[i] = self.layers[i].gradient@(self.layers[i-1].activation.T)
+            self.weight_grad[i] = np.outer(self.layers[i].gradient,self.layers[i-1].activation)
             self.bias_grad[i] = self.layers[i].gradient
             # Computing gradients wrt layer below
             grad_temp = self.weights[i].T@self.layers[i].gradient
             # Computing gradients wrt layer below (pre act)
             self.layers[i-1].gradient = grad_temp*(self.activation_der(self.layers[i-1].activation))
-        self.weight_grad[0] = self.layers[0].gradient@(input.T)
+        self.weight_grad[0] = np.outer(self.layers[0].gradient,input)
         self.bias_grad[0] = self.layers[0].gradient
         return self.weight_grad,self.bias_grad
+
+    def predict(self,X):
+        y_pred = []
+        for i in range(len(X)):
+            x = X[i].reshape(28*28,1)
+            yhat = self.forward_pass(x)
+            y_pred.append(np.argmax(yhat))
+        return y_pred
+   
+    def accuracy_score(self,y_pred,y):
+        score = 0
+        for i in range(len(y)):
+            if y[i] == y_pred[i]:
+                score+=1
+        return (score/len(y))*100
+
+
 
 
 
