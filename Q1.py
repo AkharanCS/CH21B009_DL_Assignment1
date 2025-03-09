@@ -1,6 +1,9 @@
 import keras
 from keras.datasets import fashion_mnist
 from matplotlib import pyplot as plt
+import wandb
+
+wandb.init(project="Assignment1_Q1")
 
 (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 
@@ -15,10 +18,11 @@ for cl,img in zip(train_labels,train_images):
         break
 
 for cl,img in one_image.items():
-    plt.imshow(img, cmap='gray') 
-    plt.title(f"class: {cl}")
-    plt.axis('off')
-    plt.show()
+    images = wandb.Image(img, caption="class"+str(cl))
+    wandb.log({"all classes": images})
+
+wandb.finish()
+    
 
 
     
