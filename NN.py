@@ -54,17 +54,24 @@ class loss():
         return -2*(y - yhat)
     
 class NeuralNetwork(hidden_layer,output_layer,activations,loss):
-    def __init__(self, num_hidden_layers:int, num_neurons_in_each_layer: list, input_size: int, num_of_classes:int,hidden_activation,loss):
+    def __init__(self, num_hidden_layers:int, num_neurons_in_each_layer: list, input_size: int, num_of_classes:int,hidden_activation,loss,weight_init):
         self.input_size = input_size
         self.num_hidden_layers = num_hidden_layers
         self.num_neurons_in_each_layer = num_neurons_in_each_layer
         self.output_size = num_of_classes
+        self.weight_init = weight_init
         self.layers = []
         
-        self.weights = [np.random.randn(num_neurons_in_each_layer[0],input_size)]
-        for i in range(1,num_hidden_layers):
-            self.weights.append(np.random.randn(num_neurons_in_each_layer[i],num_neurons_in_each_layer[i-1]))
-        self.weights.append(np.random.randn(self.output_size,num_neurons_in_each_layer[-1]))
+        if weight_init == "random":
+            self.weights = [np.random.randn(num_neurons_in_each_layer[0],input_size)]
+            for i in range(1,num_hidden_layers):
+                self.weights.append(np.random.randn(num_neurons_in_each_layer[i],num_neurons_in_each_layer[i-1]))
+            self.weights.append(np.random.randn(self.output_size,num_neurons_in_each_layer[-1]))
+        else:
+            self.weights = [np.random.randn(num_neurons_in_each_layer[0],input_size)*np.sqrt(2/(self.num_neurons_in_each_layer[0]+self.input_size))]
+            for i in range(1,num_hidden_layers):
+                self.weights.append(np.random.randn(num_neurons_in_each_layer[i],num_neurons_in_each_layer[i-1])*np.sqrt(2/(self.num_neurons_in_each_layer[i]+self.num_neurons_in_each_layer[i-1])))
+            self.weights.append(np.random.randn(self.output_size,num_neurons_in_each_layer[-1])*np.sqrt(2/(self.num_neurons_in_each_layer[-1]+self.output_size)))
     
         self.bias = []
         for i in range(len(self.weights)-1):

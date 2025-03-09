@@ -22,10 +22,9 @@ y_train_enc = one_hot_encode(y_train,10)
 y_val_enc = one_hot_encode(y_val,10)
 y_test_enc = one_hot_encode(y_test,10)
 
-
-nn1 = NeuralNetwork(2,[512,256],28*28,10,"relu","cross_entropy")
+nn1 = NeuralNetwork(2,[512,256],28*28,10,"relu","cross_entropy","Xavier")
 nn1.build_network()
-opt = optimizer("SGD",25,1,0.0001,x_train[:1000],y_train_enc[:1000],x_val,y_val_enc,"cross_entropy")
+opt = optimizer("sgd",25,1,0.0001,x_train[:1000],y_train_enc[:1000],x_val,y_val_enc,y_val,"cross_entropy",0)
 opt.SGD(nn1)
 y_pred = nn1.predict(x_val)
 print(y_pred[:10])

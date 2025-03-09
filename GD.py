@@ -3,22 +3,34 @@ import copy
 from NN import hidden_layer,output_layer,NeuralNetwork,activations
 
 class loss_after_epoch():
-    def cross_entropy_loss(self,nn:NeuralNetwork,X,Y):
+    def cross_entropy_loss(self,nn:NeuralNetwork,X,Y,weight_decay):
         error = 0.0
         for x,y in zip(X,Y):
-            yhat = nn.forward_pass(x.reshape(28*28,1)/255)
+            yhat = nn.forward_pass(x.reshape(28*28,1))
             error += (-1*np.sum(y@np.log(yhat+0.0001)))
-        return error/len(X)
+        l2 = 0
+        for i in range(len(nn.weights)):
+            for j in range(len(nn.weights[i])):
+                for k in range(len((nn.weights[i][0]))):
+                    l2 += nn.weights[i][j][k]**2
+
+        return (error + (weight_decay*l2))/len(X)
     
-    def squared_error_loss(self,nn:NeuralNetwork,X,Y):
+    def squared_error_loss(self,nn:NeuralNetwork,X,Y,weight_decay):
         error = 0.0
         for x,y in zip(X,Y):
-            yhat = nn.forward_pass(x.reshape(28*28,1)/255)
+            yhat = nn.forward_pass(x.reshape(28*28,1))
             error += np.sum((y - yhat)**2)
-        return error/len(X)
-    
+        l2 = 0
+        for i in range(len(nn.weights)):
+            for j in range(len(nn.weights[i])):
+                for k in range(len((nn.weights[i][0]))):
+                    l2 += nn.weights[i][j][k]**2
+        return (error + (weight_decay*l2))/len(X)
+
+
 class optimizer(loss_after_epoch):
-    def __init__(self,optimizer_name,epochs,batch_size,learning_rate,train_x,train_y,val_x,val_y,loss):
+    def __init__(self,optimizer_name,epochs,batch_size,learning_rate,train_x,train_y,val_x,val_y_enc,val_y,loss,weight_decay):
         self.opt_type = optimizer_name
         self.batch_size = batch_size
         self.epochs = epochs
@@ -26,16 +38,35 @@ class optimizer(loss_after_epoch):
         self.x_train = train_x
         self.y_train = train_y
         self.x_val = val_x
-        self.y_val = val_y
+        self.y_val = val_y_enc
+        self.y_val_real = val_y
         if loss == "cross_entropy":
             self.loss = self.cross_entropy_loss
         if loss == "squared_error":
             self.loss = self.squared_error_loss
-    
+
+        if self.opt_type == "sgd":
+            self.optim_fun = self.SGD
+        elif self.opt_type == "momentum":
+            self.optim_fun = self.momentum_based_GD
+        elif self.opt_type == "nesterov":
+            self.optim_fun = self.NAGD
+        elif self.opt_type == "rmsprop":
+            self.optim_fun = self.rms_prop
+        elif self.opt_type == "adam":
+            self.optim_fun = self.adam
+        elif self.opt_type == "nadam":
+            self.optim_fun = self.nadam
+
+        self.l2 = weight_decay
+
     def SGD(self,nn:NeuralNetwork):
         epochs = self.epochs
         lr = self.eta
-        print("Iniial Loss:",self.loss(nn,self.x_val,self.y_val))
+        val_error = []
+        val_acc = []
+        epo = []
+        print("Iniial Loss:",self.loss(nn,self.x_val,self.y_val,self.l2))
         for i in range(epochs):
             for j in range(len(self.x_train)):
                 x = self.x_train[j].reshape(28*28,1)
@@ -45,8 +76,13 @@ class optimizer(loss_after_epoch):
                 for k in range(len(nn.weights)):
                     nn.weights[k] -= lr*w_grad_now[k]
                     nn.bias[k] -= lr*b_grad_now[k]
-            loss = self.loss(nn,self.x_val,self.y_val)
-            print(f"epoch {i}, Cost: {loss}")
+            loss = self.loss(nn,self.x_val,self.y_val,self.l2)
+            val_pred = nn.predict(self.x_val)
+            epo.append(i+1)
+            val_error.append(loss)
+            val_acc.append(nn.accuracy_score(val_pred,self.y_val_real))
+            print(f"epoch {i+1}, val_loss: {loss}")
+        return epo,val_error,val_acc
 
     def momentum_based_GD(self,nn:NeuralNetwork):
         epochs = self.epochs
@@ -57,7 +93,10 @@ class optimizer(loss_after_epoch):
         prev_ub = copy.deepcopy(nn.bias_grad_cumm)
         uw = copy.deepcopy(nn.weight_grad_cumm)
         ub = copy.deepcopy(nn.bias_grad_cumm)
-        print("Iniial Loss:",self.loss(nn,self.x_val,self.y_val))
+        val_error = []
+        val_acc = []
+        epo = []
+        print("Iniial Loss:",self.loss(nn,self.x_val,self.y_val,self.l2))
         for i in range(epochs):
             dw = copy.deepcopy(nn.weight_grad_cumm)
             db = copy.deepcopy(nn.bias_grad_cumm)
@@ -79,9 +118,13 @@ class optimizer(loss_after_epoch):
                     nn.bias[m] -= ub[m]
                     prev_uw[m] = uw[m]
                     prev_ub[m] = ub[m]
-            loss = self.loss(nn,self.x_val,self.y_val)
-            print(f"epoch {i}, Cost: {loss}")
-        
+            loss = self.loss(nn,self.x_val,self.y_val,self.l2)
+            val_pred = nn.predict(self.x_val)
+            epo.append(i+1)
+            val_error.append(loss)
+            val_acc.append(nn.accuracy_score(val_pred,self.y_val_real))
+            print(f"epoch {i+1}, val_loss: {loss}")
+        return epo,val_error,val_acc
 
     def NAGD(self,nn:NeuralNetwork):
         epochs = self.epochs
@@ -92,7 +135,10 @@ class optimizer(loss_after_epoch):
         prev_ub = copy.deepcopy(nn.bias_grad_cumm)
         uw = copy.deepcopy(nn.weight_grad_cumm)
         ub = copy.deepcopy(nn.bias_grad_cumm)
-        print("Iniial Loss:",self.loss(nn,self.x_train,self.y_train))
+        val_error = []
+        val_acc = []
+        epo = []
+        print("Iniial Loss:",self.loss(nn,self.x_train,self.y_train,self.l2))
         for i in range(epochs):
             dw = copy.deepcopy(nn.weight_grad_cumm)
             db = copy.deepcopy(nn.bias_grad_cumm)
@@ -119,8 +165,13 @@ class optimizer(loss_after_epoch):
                     nn.bias[m] -= ub[m]
                     prev_uw[m] = uw[m]
                     prev_ub[m] = ub[m]
-            loss = self.loss(nn,self.x_train,self.y_train)
-            print(f"epoch {i}, Cost: {loss}")
+            loss = self.loss(nn,self.x_train,self.y_train,self.l2)
+            val_pred = nn.predict(self.x_val)
+            epo.append(i+1)
+            val_error.append(loss)
+            val_acc.append(nn.accuracy_score(val_pred,self.y_val_real))
+            print(f"epoch {i+1}, val_loss: {loss}")
+        return epo,val_error,val_acc
 
 
     def rms_prop(self,nn:NeuralNetwork):
@@ -131,7 +182,10 @@ class optimizer(loss_after_epoch):
         eps = 1e-4
         uw = copy.deepcopy(nn.weight_grad_cumm)
         ub = copy.deepcopy(nn.bias_grad_cumm)
-        print("Iniial Loss:",self.loss(nn,self.x_train,self.y_train))
+        val_error = []
+        val_acc = []
+        epo = []
+        print("Iniial Loss:",self.loss(nn,self.x_train,self.y_train,self.l2))
         for i in range(epochs):
             dw = copy.deepcopy(nn.weight_grad_cumm)
             db = copy.deepcopy(nn.bias_grad_cumm)
@@ -153,9 +207,13 @@ class optimizer(loss_after_epoch):
                     nn.weights[m] -= lr*uw[m]/(np.sqrt(uw[m])+eps)
                     nn.bias[m] -= lr*ub[m]/(np.sqrt(ub[m])+eps)
             
-            loss = self.loss(nn,self.x_train,self.y_train)
-            print(f"epoch {i}, Cost: {loss}")
-
+            loss = self.loss(nn,self.x_train,self.y_train,self.l2)
+            val_pred = nn.predict(self.x_val)
+            epo.append(i+1)
+            val_error.append(loss)
+            val_acc.append(nn.accuracy_score(val_pred,self.y_val_real))
+            print(f"epoch {i+1}, val_loss: {loss}")
+        return epo,val_error,val_acc
 
     def adam(self,nn:NeuralNetwork):
         epochs = self.epochs
@@ -171,7 +229,10 @@ class optimizer(loss_after_epoch):
         ub_hat = copy.deepcopy(nn.bias_grad_cumm)
         mw_hat = copy.deepcopy(nn.weight_grad_cumm)
         mb_hat = copy.deepcopy(nn.bias_grad_cumm)
-        print("Iniial Loss:",self.loss(nn,self.x_train,self.y_train))
+        val_error = []
+        val_acc = []
+        epo = []
+        print("Iniial Loss:",self.loss(nn,self.x_train,self.y_train,self.l2))
         for i in range(epochs):
             t = 0
             dw = copy.deepcopy(nn.weight_grad_cumm)
@@ -206,9 +267,13 @@ class optimizer(loss_after_epoch):
 
                 t+=1
 
-            loss = self.loss(nn,self.x_train,self.y_train)
-            print(f"epoch {i}, Cost: {loss}")
-
+            loss = self.loss(nn,self.x_train,self.y_train,self.l2)
+            val_pred = nn.predict(self.x_val)
+            epo.append(i+1)
+            val_error.append(loss)
+            val_acc.append(nn.accuracy_score(val_pred,self.y_val_real))
+            print(f"epoch {i+1}, val_loss: {loss}")
+        return epo,val_error,val_acc
 
     def nadam(self,nn:NeuralNetwork):
         epochs = self.epochs
@@ -224,7 +289,10 @@ class optimizer(loss_after_epoch):
         ub_hat = copy.deepcopy(nn.bias_grad_cumm)
         mw_hat = copy.deepcopy(nn.weight_grad_cumm)
         mb_hat = copy.deepcopy(nn.bias_grad_cumm)
-        print("Iniial Loss:",self.loss(nn,self.x_train,self.y_train))
+        val_error = []
+        val_acc = []
+        epo = []
+        print("Iniial Loss:",self.loss(nn,self.x_train,self.y_train,self.l2))
         for i in range(epochs):
             dw = copy.deepcopy(nn.weight_grad_cumm)
             db = copy.deepcopy(nn.bias_grad_cumm)
@@ -259,5 +327,10 @@ class optimizer(loss_after_epoch):
 
                 t += 1
 
-            loss = self.loss(nn,self.x_train,self.y_train)
-            print(f"epoch {i}, Cost: {loss}")
+            loss = self.loss(nn,self.x_train,self.y_train,self.l2)
+            val_pred = nn.predict(self.x_val)
+            epo.append(i+1)
+            val_error.append(loss)
+            val_acc.append(nn.accuracy_score(val_pred,self.y_val_real))
+            print(f"epoch {i+1}, val_loss: {loss}")
+        return epo,val_error,val_acc

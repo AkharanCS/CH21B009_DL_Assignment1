@@ -3,7 +3,7 @@ import numpy as np
 from keras.datasets import fashion_mnist
 from matplotlib import pyplot as plt
 from NN import hidden_layer,output_layer,NeuralNetwork,activations
-from optimizer import optimizer
+from GD import optimizer
 
 def one_hot_encode(labels, num_classes):
     one_hot = np.zeros((len(labels), num_classes))
@@ -22,9 +22,9 @@ y_train_enc = one_hot_encode(y_train,10)
 y_val_enc = one_hot_encode(y_val,10)
 y_test_enc = one_hot_encode(y_test,10)
 
-nn2 = NeuralNetwork(2,[256,128],28*28,10,"relu","cross_entropy")
+nn2 = NeuralNetwork(2,[256,128],28*28,10,"relu","cross_entropy","Xavier")
 nn2.build_network()
-opt = optimizer("m",10,128,0.0001,x_train[:1000],y_train_enc[:1000],x_val,y_val_enc,"cross_entropy")
+opt = optimizer("m",10,128,0.0001,x_train[:1000],y_train_enc[:1000],x_val,y_val_enc,y_val,"cross_entropy",0)
 opt.momentum_based_GD(nn2)
 y_pred = nn2.predict(x_val)
 print(y_pred[:10])

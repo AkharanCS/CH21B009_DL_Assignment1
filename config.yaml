@@ -1,0 +1,30 @@
+program: Q4.py  
+method: random  
+
+metric:
+  name: validation_loss  
+  goal: minimize  
+
+parameters:
+  epochs:
+    values: [5,10]
+  no_of_hidden_layers: 
+    values: [3,4,5]
+  size_of_every_hidden_layer:
+    values: [32,64,128]
+  weight_decay:
+    values: [0,0.0005]
+  learning_rate:
+    values: [0.001,0.0001] 
+  optimizer:
+    values: ["sgd","adam","nadam"]
+  batch_size:
+    values: [16, 32, 64]  
+  weight_initialisation:
+    values: ["random","Xavier"]
+  activation_functions:
+    values: ["sigmoid","tanh","relu"]
+ 
+early_terminate:
+  type: hyperband  # Stops bad runs early
+  min_iter: 3  # Minimum iterations before stopping underperforming runs
