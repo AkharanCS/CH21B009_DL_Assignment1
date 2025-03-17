@@ -17,7 +17,7 @@ All the other files import the above three files to do the required tasks.
 - **`Q10.py`**: contains code for running the best network configurations on mnist as required in Q10
 - **`train.py`**: contains code which accepts all the commands given under code specification. 
 
-## How to run (follow this order)
+## Steps to run (follow this order)
 1. Clone the repository:
    ```bash
    git clone https://github.com/AkharanCS/CH21B009_DL_Assignment1.git
