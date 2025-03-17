@@ -13,7 +13,7 @@
 - **`GD.py`**: contains all the classes and functions constituting every type of optimizer. (solution for Q3)
 - **`utils.py`**: contains one-hot encoding function to encode the classification labels.
 
-All the other files import the above three files to do the required tasks.
+All the other files import the above four files to do the required tasks.
 
 - **`Q4.py`**: contains code for performing the wandb sweep required in Q4
 - **`Q7.py`**: contains code required for Q7
