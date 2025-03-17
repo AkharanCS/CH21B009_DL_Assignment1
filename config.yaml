@@ -2,7 +2,7 @@ program: Q4.py
 method: random  
 
 metric:
-  name: validation_loss  
+  name: val_loss  
   goal: minimize  
 
 parameters:

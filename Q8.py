@@ -42,9 +42,9 @@ def train():
     weight_init = config.weight_initialisation
     activation_fun = config.activation_functions
 
-    nn = NeuralNetwork(n_layers,[layer_size for _ in range(n_layers)],28*28,10,activation_fun,"cross_entropy",weight_init)
+    nn = NeuralNetwork(n_layers,[layer_size for _ in range(n_layers)],28*28,10,activation_fun,"squared_error",weight_init)
     nn.build_network()
-    optim = optimizer(opt,epochs,batch_size,lr,x_train[:30000],y_train_enc[:30000],x_val,y_val_enc,y_val,"cross_entropy",weight_decay)
+    optim = optimizer(opt,epochs,batch_size,lr,x_train[:10000],y_train_enc[:10000],x_val,y_val_enc,y_val,"squared_error",weight_decay)
     epo,validation_loss,validation_acc = optim.optim_fun(nn)
     for i in range(len(epo)):
         wandb.log({"epochs": epo[i], "val_loss": validation_loss[i], "val_accuracy": validation_acc[i]})
@@ -58,5 +58,5 @@ def train():
 with open("config.yaml", "r") as file:
     sweep_config = yaml.safe_load(file)
 
-sweep_id = wandb.sweep(sweep_config, project="Assignment1_Q4")
+sweep_id = wandb.sweep(sweep_config, project="Assignment1_Q8")
 wandb.agent(sweep_id, function=train,count=20)
