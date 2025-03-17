@@ -27,7 +27,7 @@ y_test_enc = one_hot_encode(y_test,10)
 wandb.run.name = "hl_3_bs_32_ac_relu_opt_sgd - best run"
 wandb.run.save()
 
-# best parameters found from previous experiments
+# best parameters found using the previous experiments
 epochs = 10
 n_layers = 3
 layer_size = 128
@@ -38,6 +38,7 @@ batch_size = 32
 weight_init = "Xavier"
 activation_fun = "relu"
 
+# Training the network using best parameters
 nn = NeuralNetwork(n_layers,[layer_size for _ in range(n_layers)],28*28,10,activation_fun,"cross_entropy",weight_init)
 nn.build_network()
 optim = optimizer(opt,epochs,batch_size,lr,x_train[:30000],y_train_enc[:30000],x_val,y_val_enc,y_val,"cross_entropy",weight_decay)

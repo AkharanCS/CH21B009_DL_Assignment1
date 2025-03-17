@@ -8,7 +8,7 @@ from NN import hidden_layer,output_layer,NeuralNetwork,activations
 from GD import optimizer
 from utils import one_hot_encode
 
-
+# Function that runs during the wandb sweep.
 def train():
     wandb.init()
 
@@ -54,5 +54,6 @@ def train():
 with open("config.yaml", "r") as file:
     sweep_config = yaml.safe_load(file)
 
+# Defining the sweep for squared-error loss function
 sweep_id = wandb.sweep(sweep_config, project="Assignment1_Q8")
 wandb.agent(sweep_id, function=train,count=20)

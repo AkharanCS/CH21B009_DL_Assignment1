@@ -2,6 +2,7 @@ import numpy as np
 import copy
 from NN import hidden_layer,output_layer,NeuralNetwork,activations
 
+# Class containing both cross-entropy and squared-error
 class loss_after_epoch():
     def cross_entropy_loss(self,nn:NeuralNetwork,X,Y,weight_decay):
         error = 0.0
@@ -28,7 +29,7 @@ class loss_after_epoch():
                     l2 += nn.weights[i][j][k]**2
         return (error + (weight_decay*l2))/len(X)
 
-
+# Class containing functions for every type of optimizer
 class optimizer(loss_after_epoch):
     def __init__(self,optimizer_name,epochs,batch_size,learning_rate,train_x,train_y,val_x,val_y_enc,val_y,loss,weight_decay):
         self.opt_type = optimizer_name
