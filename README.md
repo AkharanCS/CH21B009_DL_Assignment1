@@ -18,7 +18,10 @@ All the other files import the above three files to do the required tasks.
 - **`train.py`**: contains code which accepts all the commands given under code specification. 
 
 ## How to run (follow this order)
-1. Clone this repository <br>
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo.git
+   ```
 2. Run `NN.py`. <br>
 3. Run `GD.py`. <br>
 4. Run `utils.py`. <br>
@@ -27,6 +30,5 @@ All the other files import the above three files to do the required tasks.
 7. **`train.py`** can be run via the command line using the following command:
 `python train.py --wandb_entity your_account_name --wandb_project your_project_name` <br>
 8. If needed, to run files inside `sample_runs`, please move them to the root directory. <br>
-
 
 
