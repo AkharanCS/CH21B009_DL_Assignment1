@@ -1,5 +1,9 @@
 # DA6401 - Assignment 1
 
+## Important Links
+- **Link to GitHub Repo** : <https://github.com/AkharanCS/CH21B009_DL_Assignment1.git>
+- **Link to wandb report** : <https://api.wandb.ai/links/ch21b009-indian-institute-of-technology-madras/gmq8fbz9>
+
 ## Directories
 - **sample_runs**: contains a sample run of the network using every optimizer. If you wish to run these files, please bring them out to the root directory as it imports classes from the root directory.
 
