@@ -20,7 +20,7 @@ All the other files import the above three files to do the required tasks.
 ## How to run (follow this order)
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo.git
+   git clone https://github.com/AkharanCS/CH21B009_DL_Assignment1.git
    ```
 2. Run `NN.py`. <br>
 3. Run `GD.py`. <br>
@@ -28,7 +28,9 @@ All the other files import the above three files to do the required tasks.
 5. Save `config.yaml` file. <br>
 6. All the other files,(`Q1.py`,`Q4.py`,`Q7.py`,`Q8.py`,`Q10.py`) can be run in any order. <br>
 7. **`train.py`** can be run via the command line using the following command:
-`python train.py --wandb_entity your_account_name --wandb_project your_project_name` <br>
+    ```bash
+    python train.py --wandb_entity your_account_name --wandb_project your_project_name
+    ```
 8. If needed, to run files inside `sample_runs`, please move them to the root directory. <br>
 
 
