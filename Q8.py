@@ -6,11 +6,7 @@ from keras.datasets import fashion_mnist
 from matplotlib import pyplot as plt
 from NN import hidden_layer,output_layer,NeuralNetwork,activations
 from GD import optimizer
-
-def one_hot_encode(labels, num_classes):
-    one_hot = np.zeros((len(labels), num_classes))
-    one_hot[np.arange(len(labels)), labels] = 1
-    return one_hot
+from utils import one_hot_encode
 
 
 def train():

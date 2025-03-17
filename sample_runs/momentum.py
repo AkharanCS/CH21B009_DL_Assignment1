@@ -4,11 +4,8 @@ from keras.datasets import fashion_mnist
 from matplotlib import pyplot as plt
 from NN import hidden_layer,output_layer,NeuralNetwork,activations
 from GD import optimizer
+from utils import one_hot_encode
 
-def one_hot_encode(labels, num_classes):
-    one_hot = np.zeros((len(labels), num_classes))
-    one_hot[np.arange(len(labels)), labels] = 1
-    return one_hot
 
 (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 x_val = train_images[:int(0.1*len(train_images))]/255

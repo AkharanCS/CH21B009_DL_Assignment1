@@ -1,13 +1,12 @@
 import keras
 from keras.datasets import fashion_mnist
-from matplotlib import pyplot as plt
 import wandb
 
 wandb.init(project="Assignment1_Q1")
 
 (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 
-# Plotting one iamge from each class
+# Plotting one image from each class
 one_image = {}
 c = 0
 for cl,img in zip(train_labels,train_images):
